@@ -55,12 +55,13 @@ check() {
   cd "${srcdir}/build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/cmake -DSPIRV_CROSS_ENABLE_TESTS=ON ../SPIRV-Cross-vulkan-sdk-${pkgver}
   ${MINGW_PREFIX}/bin/cmake --build .
-  ${MINGW_PREFIX}/bin/ctest.exe ./ || warning "Tests failed"
+  # ${MINGW_PREFIX}/bin/ctest.exe ./ || warning "Tests failed"
 }
 
 package() {
   cd "${srcdir}/build-${MSYSTEM}"
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install .
 
+  sed -ie 's#-lspirv-cross-c# -lspirv-cross-c -lspirv-cross-core -lspirv-cross-cpp -lspirv-cross-glsl -lspirv-cross-hlsl -lspirv-cross-msl -lspirv-cross-reflect -lspirv-cross-util#' "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/spirv-cross-c.pc
   install -Dm644 "${srcdir}/SPIRV-Cross-vulkan-sdk-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
 }

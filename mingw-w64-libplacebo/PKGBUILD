@@ -25,9 +25,27 @@ makedepends=("git"
              "${MINGW_PACKAGE_PREFIX}-vulkan-headers")
 license=('LGPL2.1')
 source=(${url}/-/archive/v${pkgver}/${_realname}-v${pkgver}.tar.gz
-        "0001-add-cflags-private.patch")
+        "0001-add-cflags-private.patch"
+        "static-by-ala.patch")
 sha256sums=('79120e685a1836344b51b13b6a5661622486a84e4d4a35f6c8d01679a20fbc86'
-            'bda9bed8b8fff7e69fe750b6f2caafde67f63343d05698a81fb1f7b27ac4cca3')
+            'bda9bed8b8fff7e69fe750b6f2caafde67f63343d05698a81fb1f7b27ac4cca3'
+            'SKIP')
+
+# Helper macros to help make tasks easier #
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    msg2 "Applying $_patch"
+    patch -Np1 -i "${srcdir}/$_patch"
+  done
+}
+
+prepare() {
+  cd ${srcdir}/${_realname}-v${pkgver}
+
+  apply_patch_with_msg \
+    static-by-ala.patch
+}
 
 build() {
   [[ -d "${srcdir}"/build-shared-${MSYSTEM} ]] && rm -rf "${srcdir}"/build-shared-${MSYSTEM}
@@ -38,7 +56,7 @@ build() {
       --prefix="${MINGW_PREFIX}"  \
       --buildtype plain           \
       -Ddemos=false               \
-      -Dtests=true                \
+      -Dtests=false                \
       -Dd3d11=enabled             \
       -Dlcms=enabled              \
       -Dlibdovi=enabled           \
@@ -84,6 +102,8 @@ package() {
 
   cd "${pkgdir}${MINGW_PREFIX}"
   patch -p0 -i "${srcdir}"/0001-add-cflags-private.patch
+
+  sed -i 's/spirv-cross-c-shared/spirv-cross-c/g'  "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/libplacebo.pc
 
   install -Dm644 "${srcdir}/${_realname}-v${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
 }

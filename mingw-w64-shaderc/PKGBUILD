@@ -80,6 +80,17 @@ package() {
   cd "${srcdir}/build-${MSYSTEM}"
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install .
 
+  rm "${pkgdir}${MINGW_PREFIX}/lib/libshaderc.a" \
+    "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/shaderc_combined.pc" \
+    "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/shaderc_static.pc"
+
+  mv "${pkgdir}${MINGW_PREFIX}/lib/libshaderc_combined.a" "${pkgdir}${MINGW_PREFIX}/lib/libshaderc.a"
+  mv "${pkgdir}${MINGW_PREFIX}/lib/libshaderc_shared.dll.a" "${pkgdir}${MINGW_PREFIX}/lib/libshaderc.dll.a"
+
+  sed -i "s#-lshaderc_shared#-lshaderc#g" "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/shaderc.pc"
+  echo "Requires.private:  SPIRV-Tools" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/shaderc.pc"
+  echo "Libs.private: -lMachineIndependent -lGenericCodeGen -lglslang -lOSDependent -lSPIRV -lSPIRV-Tools-opt -lSPIRV-Tools" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/shaderc.pc"
+
   install -Dm644 "${srcdir}/${_realname}-${pkgver}/glslc/glslc.1" \
   -t "${pkgdir}${MINGW_PREFIX}/share/man/man1" || true
 }

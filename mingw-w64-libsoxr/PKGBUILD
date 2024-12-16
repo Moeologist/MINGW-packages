@@ -86,6 +86,12 @@ package() {
   cd "${srcdir}/build-${MSYSTEM}-shared"
   DESTDIR=${pkgdir} ${MINGW_PREFIX}/bin/cmake --install .
 
+  if [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]];then
+    echo "Libs.private: -lomp -lpsapi" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/soxr.pc"
+  else
+    echo "Libs.private: -lgomp -ldl" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/soxr.pc"
+  fi
+
   # License
   install -Dm644 ${srcdir}/code/LICENCE ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
   install -Dm644 ${srcdir}/code/COPYING.LGPL ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/

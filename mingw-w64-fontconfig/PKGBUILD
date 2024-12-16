@@ -95,6 +95,8 @@ package() {
   sed -i "s|${MINGW_PREFIX}/etc/|\${sysconfdir}/|g" "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/fontconfig.pc
   sed -i "s|${MINGW_PREFIX}/var|\${prefix}/var|g" "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/fontconfig.pc
 
+  sed -i "s#-liconv#-lintl -liconv#g" "${pkgdir}${MINGW_PREFIX}"/lib/pkgconfig/fontconfig.pc
+
   for hook in fontconfig; do
     local hook_path="${srcdir}/${MINGW_PACKAGE_PREFIX}-${hook}.hook";
     cp "${srcdir}/${hook}.hook.in" "${hook_path}"

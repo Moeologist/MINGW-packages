@@ -1,0 +1,69 @@
+
+_realname=SVT-HEVC
+pkgbase=mingw-w64-svt-hevc
+pkgname=("${MINGW_PACKAGE_PREFIX}-svt-hevc")
+pkgver=1.5.1
+pkgrel=1
+pkgdesc="Scalable Video Technology HEVC encoder and decoder (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url='https://github.com/OpenVisualCloud/SVT-HEVC'
+license=('spdx:BSD-3-Clause-Clear')
+makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
+             "${MINGW_PACKAGE_PREFIX}-ninja"
+             "${MINGW_PACKAGE_PREFIX}-yasm"
+             "${MINGW_PACKAGE_PREFIX}-cc")
+source=(${_realname}-${pkgver}.tar.gz::https://github.com/OpenVisualCloud/SVT-HEVC/archive/refs/tags/v${pkgver}.tar.gz)
+sha256sums=('SKIP')
+
+prepare() {
+  cd "${srcdir}"/${_realname}-${pkgver}
+  sed '/CMAKE_BUILD_TYPE Release/d' -i CMakeLists.txt
+}
+
+build() {
+  declare -a extra_config
+  if check_option "debug" "n"; then
+    extra_config+=("-DCMAKE_BUILD_TYPE=Release")
+  else
+    extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
+  fi
+
+  [[ -d "${srcdir}"/build-${MSYSTEM}-static ]] && rm -rf "${srcdir}"/build-${MSYSTEM}-static
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-static && cd "${srcdir}"/build-${MSYSTEM}-static
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake \
+      -GNinja \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      "${extra_config[@]}" \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DREPRODUCIBLE_BUILDS=ON \
+      ../${_realname}-${pkgver}
+
+  ${MINGW_PREFIX}/bin/cmake --build .
+
+  [[ -d "${srcdir}"/build-${MSYSTEM}-shared ]] && rm -rf "${srcdir}"/build-${MSYSTEM}-shared
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-shared && cd "${srcdir}"/build-${MSYSTEM}-shared
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake \
+      -GNinja \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      "${extra_config[@]}" \
+      -DBUILD_SHARED_LIBS=ON \
+      ../${_realname}-${pkgver}
+
+  ${MINGW_PREFIX}/bin/cmake --build .
+}
+
+package() {
+  cd "${srcdir}"/build-${MSYSTEM}-static
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
+
+  # pkg-config file adds -DEB_DLL in cflags for shared libs only
+  cd "${srcdir}"/build-${MSYSTEM}-shared
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
+
+  install -Dm644 ${srcdir}/${_realname}-${pkgver}/LICENSE.md ${pkgdir}${MINGW_PREFIX}/share/licenses/svt-hevc/LICENSE
+}

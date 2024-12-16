@@ -27,14 +27,16 @@ depends=("${MINGW_PACKAGE_PREFIX}-ffmpeg"
          "${MINGW_PACKAGE_PREFIX}-libdvdread"
          "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
          "${MINGW_PACKAGE_PREFIX}-libplacebo"
-         "${MINGW_PACKAGE_PREFIX}-lua51"
+         "${MINGW_PACKAGE_PREFIX}-luajit"
          "${MINGW_PACKAGE_PREFIX}-mujs"
          "${MINGW_PACKAGE_PREFIX}-rubberband"
          "${MINGW_PACKAGE_PREFIX}-shaderc"
          "${MINGW_PACKAGE_PREFIX}-spirv-cross"
          "${MINGW_PACKAGE_PREFIX}-uchardet"
-         "${MINGW_PACKAGE_PREFIX}-vapoursynth"
+        #  "${MINGW_PACKAGE_PREFIX}-vapoursynth"
          "${MINGW_PACKAGE_PREFIX}-vulkan"
+         "${MINGW_PACKAGE_PREFIX}-openal"
+         "${MINGW_PACKAGE_PREFIX}-SDL2"
          "winpty")
 makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-meson"
@@ -49,10 +51,24 @@ sha256sums=('2ca92437affb62c2b559b4419ea4785c70d023590500e8a52e95ea3ab4554683')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
+  echo EXPORTS>libmpv/libmpv.def
+#   cat libmpv/mpv.def>>libmpv/libmpv.def
+  cat ../../ffmpeg.def>>libmpv/libmpv.def
+  sed -ie "s#library('mpv', sources,#library('mpv', sources, vs_module_defs: 'libmpv/libmpv.def',#" meson.build
+  sed -ie "s#spirv-cross-c-shared#spirv-cross-c#" meson.build
 }
 
 build() {
   mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
+
+  local LINK_ARGS="-Wl,--exclude-all-symbols -static -lsharpyuv -lvorbisfile"
+  local C_ARGS="-DAL_LIBTYPE_STATIC -DPL_STATIC"
+
+  if [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]];then
+    LINK_ARGS="$LINK_ARGS -lomp"
+  else
+    LINK_ARGS="$LINK_ARGS -lgomp"
+  fi
 
   MSYS2_ARG_CONV_EXCL="--prefix=" \
     meson setup \
@@ -62,6 +78,28 @@ build() {
       -Dlibmpv=true \
       -Djavascript=enabled \
       $([[ ${CARCH} == aarch64 ]] && echo "-Dgl=disabled") \
+      -Db_lto=true \
+      -Db_ndebug=true \
+      -Dc_args="${C_ARGS}" \
+      -Dc_link_args="${LINK_ARGS}" \
+      -Dprefer_static=true \
+      -Dpdf-build=enabled \
+      -Dlua=enabled \
+      -Djavascript=enabled \
+      -Dsdl2=enabled \
+      -Dlibarchive=disabled \
+      -Dlibbluray=enabled \
+      -Ddvdnav=enabled \
+      -Duchardet=enabled \
+      -Drubberband=enabled \
+      -Dlcms2=enabled \
+      -Dopenal=enabled \
+      -Dspirv-cross=enabled \
+      -Dvulkan=enabled \
+      -Dvapoursynth=enabled \
+      -Degl-angle=enabled \
+      -Dcdda=enabled \
+      -Dvaapi-win32=disabled \
       ../${_realname}-${pkgver}
 
   meson compile
@@ -83,4 +121,6 @@ package() {
   echo 'export _started_from_console=yes' >> "${pkgdir}${MINGW_PREFIX}/bin/${_exename}"
   echo '/usr/bin/winpty "$( dirname ${BASH_SOURCE[0]} )/'${_exename}'.exe" "$@"' >> "${pkgdir}${MINGW_PREFIX}/bin/${_exename}"
   mv "${pkgdir}${MINGW_PREFIX}/bin/mpv_exe" "${pkgdir}${MINGW_PREFIX}/bin/mpv.exe"
+  strip ${pkgdir}${MINGW_PREFIX}/bin/*.exe
+  strip ${pkgdir}${MINGW_PREFIX}/bin/*.dll
 }

@@ -17,8 +17,7 @@ msys2_references=(
 options=('staticlibs' 'strip')
 makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-autotools")
-depends=("${MINGW_PACKAGE_PREFIX}-libiconv"
-         "${MINGW_PACKAGE_PREFIX}-libcddb")
+depends=("${MINGW_PACKAGE_PREFIX}-libiconv")
 source=(https://ftp.gnu.org/gnu/libcdio/${_realname}-${pkgver}.tar.bz2{,.sig}
         libcdio-0.83-linking.patch)
 sha256sums=('8550e9589dbd594bfac93b81ecf129b1dc9d0d51e90f9696f1b2f9b2af32712b'
@@ -39,6 +38,7 @@ build() {
     --prefix=${MINGW_PREFIX} \
     --build=${MINGW_CHOST} \
     --host=${MINGW_CHOST} \
+    --without-cddb \
     --disable-vcd-info \
     --enable-cpp-progs \
     --enable-shared \

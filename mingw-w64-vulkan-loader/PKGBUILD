@@ -23,8 +23,12 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-ninja"
              "${MINGW_PACKAGE_PREFIX}-python"
              "${MINGW_PACKAGE_PREFIX}-vulkan-headers")
-source=("https://github.com/KhronosGroup/${_realname}/archive/vulkan-sdk-${pkgver}/${_realname}-${pkgver}.tar.gz")
-sha256sums=('924b439421c30513f59dfd360cb1309639c1522de28608eb64c9d79581e44c72')
+source=("https://github.com/KhronosGroup/${_realname}/archive/vulkan-sdk-${pkgver}/${_realname}-${pkgver}.tar.gz"
+        "static-by-ala.patch"
+        "vulkan-0001-cross-compile-static-linking-hacks.patch")
+sha256sums=('924b439421c30513f59dfd360cb1309639c1522de28608eb64c9d79581e44c72'
+            'SKIP'
+            'SKIP')
 
 # Helper macros to help make tasks easier #
 apply_patch_with_msg() {
@@ -37,6 +41,12 @@ apply_patch_with_msg() {
 
 prepare() {
   cd ${srcdir}/${_realname}-vulkan-sdk-${pkgver}
+
+  rm ${srcdir}/${_realname}-vulkan-sdk-${pkgver}/loader/vulkan.pc.in
+
+  apply_patch_with_msg \
+    vulkan-0001-cross-compile-static-linking-hacks.patch \
+    static-by-ala.patch
 }
 
 build() {
@@ -60,6 +70,7 @@ build() {
     -DUSE_MASM=OFF \
     -DBUILD_TESTS=OFF \
     $([[ ${CARCH} != i686 ]] && echo "-DUSE_GAS=ON") \
+    -DBUILD_STATIC_LOADER=ON \
     ../${_realname}-vulkan-sdk-${pkgver}
 
   ${MINGW_PREFIX}/bin/cmake.exe --build ./

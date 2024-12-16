@@ -24,7 +24,6 @@ makedepends=(
 )
 depends=(
   "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
-  "${MINGW_PACKAGE_PREFIX}-libtiff"
 )
 source=("https://downloads.sourceforge.net/sourceforge/lcms/${_realname}-${pkgver}.tar.gz")
 sha256sums=('d873d34ad8b9b4cea010631f1a6228d2087475e4dc5e763eb81acc23d9d45a51')
@@ -41,6 +40,7 @@ build() {
       -Ddefault_library=both \
       -Dutils=true \
       -Dfastfloat=true \
+      -Dtiff=disabled \
       ../${_realname}-${pkgver}
 
   meson compile

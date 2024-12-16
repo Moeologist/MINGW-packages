@@ -30,7 +30,29 @@ prepare() {
 }
 
 build() {
-  mkdir -p "${srcdir}"/build-${MSYSTEM} && cd "${srcdir}"/build-${MSYSTEM}
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-static && cd "${srcdir}"/build-${MSYSTEM}-static
+
+  declare -a extra_config
+  if check_option "debug" "n"; then
+    extra_config+=("-DCMAKE_BUILD_TYPE=Release")
+  else
+    extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
+  fi
+
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+    ${MINGW_PREFIX}/bin/cmake \
+      -G'Ninja' \
+      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+      "${extra_config[@]}" \
+      -DBUILD_SHARED_LIBS=OFF \
+      -DOPENCL_ICD_LOADER_DISABLE_OPENCLON12=ON \
+      -DOPENCL_ICD_LOADER_HEADERS_DIR=${MINGW_PREFIX}/include \
+      -DBUILD_TESTING=OFF \
+      ../OpenCL-ICD-Loader-${pkgver}
+
+  ${MINGW_PREFIX}/bin/cmake --build .
+
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-shared && cd "${srcdir}"/build-${MSYSTEM}-shared
 
   declare -a extra_config
   if check_option "debug" "n"; then
@@ -54,8 +76,15 @@ build() {
 }
 
 package() {
-  cd "${srcdir}"/build-${MSYSTEM}
+  cd "${srcdir}"/build-${MSYSTEM}-static
   DESTDIR=${pkgdir} ${MINGW_PREFIX}/bin/cmake --install .
+
+  mv "${pkgdir}${MINGW_PREFIX}/lib/OpenCL.a" "${pkgdir}${MINGW_PREFIX}/lib/libOpenCL.a"
+
+  cd "${srcdir}"/build-${MSYSTEM}-shared
+  DESTDIR=${pkgdir} ${MINGW_PREFIX}/bin/cmake --install .
+  
+  echo "Libs.private: -lcfgmgr32 -lole32" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/opencl.pc"
 
   install -Dm644 ${srcdir}/OpenCL-ICD-Loader-${pkgver}/LICENSE ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
 }

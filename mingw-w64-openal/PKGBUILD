@@ -10,7 +10,7 @@ arch=('any')
 mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
 url="https://github.com/kcat/openal-soft"
 license=('spdx:GPL-2.0-or-later')
-depends=("${MINGW_PACKAGE_PREFIX}-libmysofa")
+depends=()
 makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-ninja"
@@ -64,7 +64,7 @@ build() {
     -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
     "${extra_config[@]}" \
     -DALSOFT_EXAMPLES=OFF \
-    -DALSOFT_UTILS=ON \
+    -DALSOFT_UTILS=OFF \
     -DALSOFT_NO_CONFIG_UTIL=ON \
     -DLIBTYPE=SHARED \
     ../openal-soft-${pkgver}
@@ -92,4 +92,7 @@ package() {
 
   cd "${srcdir}/shared-${MSYSTEM}"
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install .
+
+  echo "Libs.private: -lshlwapi -lcfgmgr32 -lole32 -lwinmm" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/openal.pc"
+  echo "Cflags.private: -DAL_LIBTYPE_STATIC" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/openal.pc"
 }

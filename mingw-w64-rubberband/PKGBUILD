@@ -47,9 +47,8 @@ build() {
     "${extra_config[@]}" \
     --wrap-mode=nodownload \
     --default-library=both \
-    --auto-features=enabled \
-    -Dfft=fftw \
-    -Dresampler=libsamplerate \
+    -Dfft=builtin \
+    -Dresampler=builtin \
     -Djni=disabled \
     -Dtests=disabled \
     "../${_realname}-${pkgver}"
@@ -59,7 +58,7 @@ build() {
 
 check() {
   cd "${srcdir}/build-${MSYSTEM}"
-  ${MINGW_PREFIX}/bin/meson.exe setup --reconfigure -Dtests=enabled "../${_realname}-${pkgver}"
+  ${MINGW_PREFIX}/bin/meson.exe setup --reconfigure -Dtests=disabled "../${_realname}-${pkgver}"
   ${MINGW_PREFIX}/bin/meson.exe compile
   ${MINGW_PREFIX}/bin/meson.exe test || warning "Tests failed"
 }

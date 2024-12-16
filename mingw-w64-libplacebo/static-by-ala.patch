@@ -1,0 +1,13 @@
+diff --git a/src/meson.build b/src/meson.build
+index 71a6168..30ee3c7 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -14,7 +14,7 @@ elif has_execinfo
+   build_deps += libexecinfo
+ endif
+ 
+-link_args = []
++link_args = [ '-lcfgmgr32', '-lpthread' ]
+ link_depends = []
+ 
+ # Looks like meson in certain configuration returns ' ' instead of empty string

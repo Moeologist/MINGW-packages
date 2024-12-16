@@ -95,5 +95,11 @@ package() {
   cd "${srcdir}"/build-${MSYSTEM}-shared
   DESTDIR=${pkgdir} cmake --install .
 
+  if [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]];then
+    echo "Libs.private: -lomp -lpsapi" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/vidstab.pc"
+  else
+    echo "Libs.private: -lgomp" >> "${pkgdir}${MINGW_PREFIX}/lib/pkgconfig/vidstab.pc"
+  fi
+
   install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
 }

@@ -1,0 +1,173 @@
+From dd2fb568b5750261692ed0c47504dac046d5b291 Mon Sep 17 00:00:00 2001
+From: shinchiro <shinchiro@users.noreply.github.com>
+Date: Wed, 29 Nov 2023 17:38:59 +0800
+Subject: [PATCH] loader: cross-compile & static linking hacks
+
+---
+ loader/CMakeLists.txt       | 24 ++++++------------------
+ loader/loader.h             |  2 ++
+ loader/loader.rc.in         |  4 ++++
+ loader/loader_windows.c     |  2 ++
+ loader/vk_loader_platform.h |  9 +++------
+ loader/vulkan.pc.in     | 11 +++++++++++
+ 6 files changed, 28 insertions(+), 24 deletions(-)
+ create mode 100644 loader/vulkan.pc.in
+
+diff --git a/loader/CMakeLists.txt b/loader/CMakeLists.txt
+index 5a4caec28..da141adbf 100644
+--- a/loader/CMakeLists.txt
++++ b/loader/CMakeLists.txt
+@@ -22,8 +22,9 @@ include(CheckIncludeFile)
+ add_library(loader_specific_options INTERFACE)
+ target_link_libraries(loader_specific_options INTERFACE loader_common_options Vulkan::Headers)
+ target_include_directories(loader_specific_options INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/generated ${CMAKE_CURRENT_BINARY_DIR})
++configure_file("vulkan.pc.in" "vulkan.pc" @ONLY)
+ 
+-if(WIN32)
++if(WIN32 AND NOT MINGW)
+ 
+     if(ENABLE_WIN10_ONECORE)
+         # Note: When linking your app or driver to OneCore.lib, be sure to remove any links to non-umbrella libs (such as
+@@ -311,7 +312,7 @@ if(UNKNOWN_FUNCTIONS_SUPPORTED)
+     list(APPEND NORMAL_LOADER_SRCS ${OPT_LOADER_SRCS})
+ endif()
+ 
+-if(WIN32)
++if(MSVC)
+     # If BUILD_DLL_VERSIONINFO was set, use the loader.rc in the build dir, otherwise use the checked in file
+     set(RC_FILE_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/loader.rc)
+     if (NOT "$CACHE{BUILD_DLL_VERSIONINFO}" STREQUAL "")
+@@ -348,21 +349,8 @@ if(WIN32)
+     endif()
+ 
+ else()
+-    if(APPLE)
+-        option(APPLE_STATIC_LOADER "Build a loader that can be statically linked. Intended for Chromium usage/testing.")
+-        mark_as_advanced(APPLE_STATIC_LOADER)
+-    endif()
+-
+-    if(APPLE_STATIC_LOADER)
+-        add_library(vulkan STATIC)
+-        target_compile_definitions(vulkan PRIVATE APPLE_STATIC_LOADER)
+-
+-        message(WARNING "The APPLE_STATIC_LOADER option has been set. Note that this will only work on MacOS and is not supported "
+-                "or tested as part of the loader. Use it at your own risk.")
+-    else()
+-        add_library(vulkan SHARED)
+-    endif()
+-
++    add_library(vulkan STATIC)
++    target_compile_definitions(vulkan PRIVATE BUILD_STATIC_LOADER)
+     target_sources(vulkan PRIVATE ${NORMAL_LOADER_SRCS})
+ 
+     set_target_properties(vulkan PROPERTIES
+@@ -462,7 +450,7 @@ if (UNKNOWN_FUNCTIONS_SUPPORTED)
+     add_dependencies(vulkan loader_asm_gen_files)
+ endif()
+ 
+-if (APPLE_STATIC_LOADER)
++if (BUILD_STATIC_LOADER)
+     # TLDR: This feature only exists at the request of Google for Chromium. No other project should use this!
+     message(NOTICE "Apple STATIC lib: it will be built but not installed, and vulkan.pc and VulkanLoaderConfig.cmake won't be generated!")
+     return()
+diff --git a/loader/loader.h b/loader/loader.h
+index 2bce18189..77def28bc 100644
+--- a/loader/loader.h
++++ b/loader/loader.h
+@@ -33,7 +33,9 @@
+ #include "cJSON.h"
+ 
+ // Declare the once_init variable
++#if defined(_WIN32) && !defined(LOADER_DYNAMIC_LIB)
+ LOADER_PLATFORM_THREAD_ONCE_EXTERN_DEFINITION(once_init)
++#endif
+ 
+ static inline VkPhysicalDevice loader_unwrap_physical_device(VkPhysicalDevice physicalDevice) {
+     struct loader_physical_device_tramp *phys_dev = (struct loader_physical_device_tramp *)physicalDevice;
+diff --git a/loader/loader.rc.in b/loader/loader.rc.in
+index 0dc4227da..e7fcea06f 100644
+--- a/loader/loader.rc.in
++++ b/loader/loader.rc.in
+@@ -19,7 +19,11 @@
+ // Author: Charles Giessen <charles@lunarg.com>
+ //
+ 
++#ifdef __MINGW64__
++#include <winresrc.h>
++#else // MSVC
+ #include "winres.h"
++#endif
+ 
+ // All set through CMake
+ #define VER_FILE_VERSION ${LOADER_VER_FILE_VERSION}
+diff --git a/loader/loader_windows.c b/loader/loader_windows.c
+index 43ecf6672..37bc684cf 100644
+--- a/loader/loader_windows.c
++++ b/loader/loader_windows.c
+@@ -97,6 +97,7 @@ void windows_initialization(void) {
+ #endif
+ }
+ 
++#if defined(LOADER_DYNAMIC_LIB)
+ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
+     (void)hinst;
+     switch (reason) {
+@@ -114,6 +115,7 @@ BOOL WINAPI DllMain(HINSTANCE hinst, DWORD reason, LPVOID reserved) {
+     }
+     return TRUE;
+ }
++#endif
+ 
+ bool windows_add_json_entry(const struct loader_instance *inst,
+                             char **reg_data,    // list of JSON files
+diff --git a/loader/vk_loader_platform.h b/loader/vk_loader_platform.h
+index a70ba71a8..4e42ba05b 100644
+--- a/loader/vk_loader_platform.h
++++ b/loader/vk_loader_platform.h
+@@ -71,15 +71,12 @@
+ #include <io.h>
+ #include <shlwapi.h>
+ #include <direct.h>
++#include <pthread.h> // for mingw
+ #endif  // defined(_WIN32)
+ 
+ #include "stack_allocation.h"
+ 
+-#if defined(APPLE_STATIC_LOADER) && !defined(__APPLE__)
+-#error "APPLE_STATIC_LOADER can only be defined on Apple platforms!"
+-#endif
+-
+-#if defined(APPLE_STATIC_LOADER)
++#if defined(BUILD_STATIC_LOADER)
+ #define LOADER_EXPORT
+ #elif defined(__GNUC__) && __GNUC__ >= 4
+ #define LOADER_EXPORT __attribute__((visibility("default")))
+@@ -233,7 +230,7 @@ static inline bool loader_platform_is_path(const char *path) { return strchr(pat
+ // resources allocated by anything allocated by once init. This isn't a problem for static libraries, but it is for dynamic
+ // ones. When building a DLL, we use DllMain() instead to allow properly cleaning up resources.
+ 
+-#if defined(APPLE_STATIC_LOADER)
++#if defined(BUILD_STATIC_LOADER)
+ static inline void loader_platform_thread_once_fn(pthread_once_t *ctl, void (*func)(void)) {
+     assert(func != NULL);
+     assert(ctl != NULL);
+diff --git a/loader/vulkan.pc.in b/loader/vulkan.pc.in
+new file mode 100644
+index 000000000..ed2f30bb2
+--- /dev/null
++++ b/loader/vulkan.pc.in
+@@ -0,0 +1,11 @@
++prefix=@CMAKE_INSTALL_PREFIX@
++exec_prefix=${prefix}
++libdir=${exec_prefix}/lib
++includedir=${prefix}/include
++
++Name: Vulkan-Loader
++Description: Vulkan Loader
++Version: @VULKAN_LOADER_VERSION@
++Libs: -L${libdir} -lvulkan
++Libs.private: -lshlwapi -lcfgmgr32 -lpthread
++Cflags: -I${includedir}
+-- 
+2.44.0
+

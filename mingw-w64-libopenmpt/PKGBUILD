@@ -15,12 +15,8 @@ msys2_references=(
 )
 license=('spdx:BSD-3-Clause')
 depends=("${MINGW_PACKAGE_PREFIX}-zlib"
-          "${MINGW_PACKAGE_PREFIX}-mpg123"
           "${MINGW_PACKAGE_PREFIX}-libogg"
-          "${MINGW_PACKAGE_PREFIX}-libvorbis"
-          "${MINGW_PACKAGE_PREFIX}-portaudio"
-          "${MINGW_PACKAGE_PREFIX}-libsndfile"
-          "${MINGW_PACKAGE_PREFIX}-flac")
+          "${MINGW_PACKAGE_PREFIX}-libvorbis")
 makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-autotools")
 source=("https://lib.openmpt.org/files/${_realname}/src/${_realname}-${pkgver}+release.autotools.tar.gz")
@@ -43,7 +39,11 @@ build() {
     --host=${MINGW_CHOST} \
     --enable-shared \
     --enable-static \
-    --disable-examples
+    --disable-examples \
+    --disable-openmpt123 \
+    --disable-tests \
+    --without-mpg123 \
+    --without-flac
 
   make
 }

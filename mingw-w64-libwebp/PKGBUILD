@@ -14,10 +14,8 @@ msys2_references=(
   "cpe: cpe:/a:webmproject:libwebp"
 )
 license=('spdx:BSD-3-Clause')
-depends=("${MINGW_PACKAGE_PREFIX}-giflib"
-         "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
-         "${MINGW_PACKAGE_PREFIX}-libpng"
-         "${MINGW_PACKAGE_PREFIX}-libtiff")
+depends=("${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
+         "${MINGW_PACKAGE_PREFIX}-libpng")
 makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-ninja")

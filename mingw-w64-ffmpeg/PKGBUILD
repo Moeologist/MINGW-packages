@@ -3,6 +3,8 @@
 # Contributor: wirx6 <wirx654@gmail.com>
 # Contributor: Ray Donnelly <mingw.android@gmail.com>
 
+_build_variant=(-static -shared)
+
 _realname=ffmpeg
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
@@ -17,29 +19,30 @@ msys2_references=(
   "cpe: cpe:/a:ffmpeg:ffmpeg"
 )
 license=('spdx:GPL-3.0-or-later')
-depends=("${MINGW_PACKAGE_PREFIX}-aom"
+depends=(
+        #  "${MINGW_PACKAGE_PREFIX}-aom"
          "${MINGW_PACKAGE_PREFIX}-bzip2"
          "${MINGW_PACKAGE_PREFIX}-dav1d"
          "${MINGW_PACKAGE_PREFIX}-fontconfig"
          "${MINGW_PACKAGE_PREFIX}-freetype"
-         "${MINGW_PACKAGE_PREFIX}-frei0r-plugins"
+        #  "${MINGW_PACKAGE_PREFIX}-frei0r-plugins"
          "${MINGW_PACKAGE_PREFIX}-fribidi"
          "${MINGW_PACKAGE_PREFIX}-gmp"
-         "${MINGW_PACKAGE_PREFIX}-gnutls"
-         "${MINGW_PACKAGE_PREFIX}-gsm"
+        #  "${MINGW_PACKAGE_PREFIX}-gnutls"
+        #  "${MINGW_PACKAGE_PREFIX}-gsm"
          "${MINGW_PACKAGE_PREFIX}-harfbuzz"
          "${MINGW_PACKAGE_PREFIX}-lame"
          "${MINGW_PACKAGE_PREFIX}-libass"
          "${MINGW_PACKAGE_PREFIX}-libbluray"
          "${MINGW_PACKAGE_PREFIX}-libcaca"
-         "${MINGW_PACKAGE_PREFIX}-libexif"
+        #  "${MINGW_PACKAGE_PREFIX}-libexif"
          "${MINGW_PACKAGE_PREFIX}-libgme"
          "${MINGW_PACKAGE_PREFIX}-libiconv"
          "${MINGW_PACKAGE_PREFIX}-libjxl"
-         "${MINGW_PACKAGE_PREFIX}-libmodplug"
-         "${MINGW_PACKAGE_PREFIX}-libssh"
+        #  "${MINGW_PACKAGE_PREFIX}-libmodplug"
+        #  "${MINGW_PACKAGE_PREFIX}-libssh"
          "${MINGW_PACKAGE_PREFIX}-libplacebo"
-         "${MINGW_PACKAGE_PREFIX}-librsvg"
+        #  "${MINGW_PACKAGE_PREFIX}-librsvg"
          "${MINGW_PACKAGE_PREFIX}-libsoxr"
          "${MINGW_PACKAGE_PREFIX}-libtheora"
          "${MINGW_PACKAGE_PREFIX}-libva"
@@ -48,17 +51,17 @@ depends=("${MINGW_PACKAGE_PREFIX}-aom"
          "${MINGW_PACKAGE_PREFIX}-libwebp"
          "${MINGW_PACKAGE_PREFIX}-libxml2"
          "${MINGW_PACKAGE_PREFIX}-libvpl"
-         "${MINGW_PACKAGE_PREFIX}-openal"
-         "${MINGW_PACKAGE_PREFIX}-opencore-amr"
-         "${MINGW_PACKAGE_PREFIX}-openjpeg2"
+        #  "${MINGW_PACKAGE_PREFIX}-openal"
+        #  "${MINGW_PACKAGE_PREFIX}-opencore-amr"
+        #  "${MINGW_PACKAGE_PREFIX}-openjpeg2"
          "${MINGW_PACKAGE_PREFIX}-opus"
-         "${MINGW_PACKAGE_PREFIX}-rav1e"
-         "${MINGW_PACKAGE_PREFIX}-rtmpdump"
+        #  "${MINGW_PACKAGE_PREFIX}-rav1e"
+        #  "${MINGW_PACKAGE_PREFIX}-rtmpdump"
          "${MINGW_PACKAGE_PREFIX}-SDL2"
          "${MINGW_PACKAGE_PREFIX}-speex"
          "${MINGW_PACKAGE_PREFIX}-srt"
           $([[ "${CARCH}" == "i686" ]] || echo "${MINGW_PACKAGE_PREFIX}-svt-av1")
-          $([[ "${CARCH}" == "i686" ]] || echo "${MINGW_PACKAGE_PREFIX}-liblc3")
+        #   $([[ "${CARCH}" == "i686" ]] || echo "${MINGW_PACKAGE_PREFIX}-liblc3")
          "${MINGW_PACKAGE_PREFIX}-vid.stab"
          "${MINGW_PACKAGE_PREFIX}-vulkan"
          "${MINGW_PACKAGE_PREFIX}-libx264"
@@ -66,24 +69,36 @@ depends=("${MINGW_PACKAGE_PREFIX}-aom"
          "${MINGW_PACKAGE_PREFIX}-xvidcore"
          "${MINGW_PACKAGE_PREFIX}-zimg"
          "${MINGW_PACKAGE_PREFIX}-zlib"
-         "${MINGW_PACKAGE_PREFIX}-zvbi")
+        #  "${MINGW_PACKAGE_PREFIX}-zvbi"
+        #  "${MINGW_PACKAGE_PREFIX}-libopenmpt"
+        #  "${MINGW_PACKAGE_PREFIX}-libmysofa"
+         "${MINGW_PACKAGE_PREFIX}-shaderc"
+         "${MINGW_PACKAGE_PREFIX}-opencl-icd"
+         "${MINGW_PACKAGE_PREFIX}-rubberband"
+         "${MINGW_PACKAGE_PREFIX}-svt-hevc"
+        )
 makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-autotools"
              "${MINGW_PACKAGE_PREFIX}-pkgconf"
              "${MINGW_PACKAGE_PREFIX}-dlfcn"
-             "${MINGW_PACKAGE_PREFIX}-vulkan-headers"
              $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-amf-headers")
              $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-ffnvcodec-headers")
              $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-aarch64* ]] || echo "${MINGW_PACKAGE_PREFIX}-nasm"))
 source=(https://ffmpeg.org/releases/${_realname}-${pkgver}.tar.xz{,.asc}
         "pathtools.c"
         "pathtools.h"
+        "master-0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch"
+        "0002-doc-Add-libsvt_hevc-encoder-docs.patch"
+        "z-autofix.patch"
         "0005-Win32-Add-path-relocation-to-frei0r-plugins-search.patch")
 validpgpkeys=('FCF986EA15E6E293A5644F10B4322F04D67658D8')
 sha256sums=('40973d44970dbc83ef302b0609f2e74982be2d85916dd2ee7472d30678a7abe6'
             'SKIP'
             'ebf471173f5ee9c4416c10a78760cea8afaf1a4a6e653977321e8547ce7bf3c0'
             '1585ef1b61cf53a2ca27049c11d49e0834683dfda798f03547761375df482a90'
+            'SKIP'
+            'SKIP'
+            'SKIP'
             '8c74e9b5800dbb41c33a60114712726ec768ad6de8f147c2eb30656fd4c899cc')
 
 # Helper macros to help make tasks easier #
@@ -106,23 +121,29 @@ prepare() {
 
   apply_patch_with_msg \
     0005-Win32-Add-path-relocation-to-frei0r-plugins-search.patch
+
+  # https://trac.ffmpeg.org/ticket/9983
+  # https://ffmpeg.org/pipermail/ffmpeg-devel/2023-March/307142.html
+  apply_patch_with_msg master-0001-lavc-svt_hevc-add-libsvt-hevc-encoder-wrapper.patch||true
+  apply_patch_with_msg 0002-doc-Add-libsvt_hevc-encoder-docs.patch||true
+  apply_patch_with_msg z-autofix.patch||true
 }
 
 build() {
   local -a common_config
   common_config+=(
-    --disable-debug
-    --disable-stripping
+    --enable-debug
+    --enable-stripping
     --disable-doc
     --enable-dxva2
     --enable-d3d11va
-    --enable-d3d12va
-    --enable-frei0r
+    --enable-fontconfig
+    # --enable-frei0r
     --enable-gmp
-    --enable-gnutls
+    # --enable-gnutls
     --enable-gpl
     --enable-iconv
-    --enable-libaom
+    # --enable-libaom
     --enable-libass
     --enable-libbluray
     --enable-libcaca
@@ -131,19 +152,19 @@ build() {
     --enable-libfreetype
     --enable-libfribidi
     --enable-libgme
-    --enable-libgsm
+    # --enable-libgsm
     --enable-libharfbuzz
-    --enable-libjxl
-    --enable-libmodplug
+    # --enable-libjxl
+    # --enable-libmodplug
     --enable-libmp3lame
-    --enable-libopencore_amrnb
-    --enable-libopencore_amrwb
-    --enable-libopenjpeg
+    # --enable-libopencore_amrnb
+    # --enable-libopencore_amrwb
+    # --enable-libopenjpeg
     --enable-libopus
     --enable-libplacebo
-    --enable-librsvg
-    --enable-librtmp
-    --enable-libssh
+    # --enable-librsvg
+    # --enable-librtmp
+    # --enable-libssh
     --enable-libsoxr
     --enable-libspeex
     --enable-libsrt
@@ -157,8 +178,8 @@ build() {
     --enable-libwebp
     --enable-libxml2
     --enable-libzimg
-    --enable-libzvbi
-    --enable-openal
+    # --enable-libzvbi
+    # --enable-openal
     --enable-pic
     --enable-postproc
     --enable-runtime-cpudetect
@@ -166,31 +187,46 @@ build() {
     --enable-version3
     --enable-vulkan
     --enable-zlib
-    --enable-librav1e
-    --enable-libvpl
+    # --enable-librav1e
+    # --enable-libopenmpt
+    # --enable-libmysofa
+    --enable-libshaderc
+    --enable-opencl
+    --enable-librubberband
+    --enable-vapoursynth
+    --disable-vaapi
   )
 
   if [[ "${CARCH}" != "i686" ]]; then
     common_config+=(
        --enable-libsvtav1
-       --enable-liblc3
+       --enable-libsvthevc
+    #    --enable-liblc3
     )
   fi
 
   if [[ "${MINGW_PACKAGE_PREFIX}" != *clang-aarch64* ]]; then
     common_config+=(
+        --enable-libvpl
         --enable-amf
         --enable-nvenc
+        --enable-nvdec
     )
   fi
 
-  for _variant in -static -shared; do
+  for _variant in "${_build_variant[@]}"; do
+    [[ -d "${srcdir}/build-${MSYSTEM}${_variant}" ]] && rm -rf "${srcdir}/build-${MSYSTEM}${_variant}"
     mkdir -p "${srcdir}/build-${MSYSTEM}${_variant}" && cd "${srcdir}/build-${MSYSTEM}${_variant}"
 
     if [[ ${_variant} == -static ]]; then
-      ENABLE_VARIANT="--enable-static --pkg-config-flags=--static"
+      ENABLE_VARIANT=(--enable-static --pkg-config-flags=--static --extra-ldflags=-static)
+      if [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]];then
+        ENABLE_VARIANT+=(--extra-libs='-lc++ -lomp')
+      else
+        ENABLE_VARIANT+=(--extra-libs='-lstdc++ -lgomp')
+      fi
     else
-      ENABLE_VARIANT=--enable-shared
+      ENABLE_VARIANT=(--enable-shared)
     fi
 
     ../${_realname}-${pkgver}/configure \
@@ -201,14 +237,14 @@ build() {
       --cxx=${CXX} \
       "${common_config[@]}" \
       --logfile=config.log \
-      ${ENABLE_VARIANT}
+      "${ENABLE_VARIANT[@]}"
 
-    make
+    make -j`nproc`
   done
 }
 
 check() {
-  for _variant in -static -shared; do
+  for _variant in "${_build_variant[@]}"; do
     cd "${srcdir}/build-${MSYSTEM}${_variant}"
     # workaround for conflict with SDL main(), use it if you have SDL installed
     # make check CC_C="-c -Umain"
@@ -217,7 +253,7 @@ check() {
 }
 
 package() {
-  for _variant in -static -shared; do
+  for _variant in "${_build_variant[@]}"; do
     cd "${srcdir}/build-${MSYSTEM}${_variant}"
     make DESTDIR="${pkgdir}" install
   done

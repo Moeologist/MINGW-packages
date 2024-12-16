@@ -1,0 +1,70 @@
+diff --git a/include/VapourSynth.h b/include/VapourSynth.h
+index cdbecac..e9a8e04 100644
+--- a/include/VapourSynth.h
++++ b/include/VapourSynth.h
+@@ -1,4 +1,4 @@
+-/*
++ && !defined(VS_STATIC_LIB)/*
+ * Copyright (c) 2012-2017 Fredrik Mellbin
+ *
+ * This file is part of VapourSynth.
+@@ -53,7 +53,7 @@
+ #endif
+ 
+ /* And now for some symbol hide-and-seek... */
+-#if defined(_WIN32) /* Windows being special */
++#if defined(_WIN32) && !defined(VS_STATIC_LIB) /* Windows being special */
+ #    define VS_EXTERNAL_API(ret) VS_EXTERN_C __declspec(dllexport) ret VS_CC
+ #elif defined(__GNUC__) && __GNUC__ >= 4
+ #    define VS_EXTERNAL_API(ret) VS_EXTERN_C __attribute__((visibility("default"))) ret VS_CC
+@@ -61,7 +61,7 @@
+ #    define VS_EXTERNAL_API(ret) VS_EXTERN_C ret VS_CC
+ #endif
+ 
+-#if !defined(VS_CORE_EXPORTS) && defined(_WIN32)
++#if !defined(VS_CORE_EXPORTS) && defined(_WIN32) && !defined(VS_STATIC_LIB)
+ #    define VS_API(ret) VS_EXTERN_C __declspec(dllimport) ret VS_CC
+ #else
+ #    define VS_API(ret) VS_EXTERNAL_API(ret)
+diff --git a/include/VapourSynth4.h b/include/VapourSynth4.h
+index 00c3cfb..2f80e52 100644
+--- a/include/VapourSynth4.h
++++ b/include/VapourSynth4.h
+@@ -51,7 +51,7 @@
+ #endif
+ 
+ /* And now for some symbol hide-and-seek... */
+-#if defined(_WIN32) /* Windows being special */
++#if defined(_WIN32) && !defined(VS_STATIC_LIB) /* Windows being special */
+ #    define VS_EXTERNAL_API(ret) VS_EXTERN_C __declspec(dllexport) ret VS_CC
+ #elif defined(__GNUC__) && __GNUC__ >= 4
+ #    define VS_EXTERNAL_API(ret) VS_EXTERN_C __attribute__((visibility("default"))) ret VS_CC
+@@ -59,7 +59,7 @@
+ #    define VS_EXTERNAL_API(ret) VS_EXTERN_C ret VS_CC
+ #endif
+ 
+-#if !defined(VS_CORE_EXPORTS) && defined(_WIN32)
++#if !defined(VS_CORE_EXPORTS) && defined(_WIN32) && !defined(VS_STATIC_LIB)
+ #    define VS_API(ret) VS_EXTERN_C __declspec(dllimport) ret VS_CC
+ #else
+ #    define VS_API(ret) VS_EXTERNAL_API(ret)
+diff --git a/pc/vapoursynth-script.pc.in b/pc/vapoursynth-script.pc.in
+index 3dfe6e0..2f6b43d 100644
+--- a/pc/vapoursynth-script.pc.in
++++ b/pc/vapoursynth-script.pc.in
+@@ -11,4 +11,4 @@ Requires: vapoursynth
+ Requires.private: python-@PYTHON_VERSION@
+ Libs: -L${libdir} -lvapoursynth-script
+ Libs.private: @PYTHON3_LIBS@
+-Cflags: -I${includedir}
++Cflags: -I${includedir} -DVS_STATIC_LIB
+diff --git a/pc/vapoursynth.pc.in b/pc/vapoursynth.pc.in
+index 85111db..e83271f 100644
+--- a/pc/vapoursynth.pc.in
++++ b/pc/vapoursynth.pc.in
+@@ -10,4 +10,4 @@ Version: @VERSION@
+ Requires.private: zimg
+ Libs: -L${libdir} -lvapoursynth
+ Libs.private: @ZIMG_LIBS@ @DLOPENLIB@
+-Cflags: -I${includedir}
++Cflags: -I${includedir} -DVS_STATIC_LIB

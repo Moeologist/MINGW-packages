@@ -1,0 +1,39 @@
+diff --git a/fftools/ffmpeg.h b/fftools/ffmpeg.h
+index 6394cca..51060a3 100644
+--- a/fftools/ffmpeg.h
++++ b/fftools/ffmpeg.h
+@@ -749,7 +749,7 @@ int dec_create(const OptionsContext *o, const char *arg, Scheduler *sch);
+  * @retval ">=0" non-negative scheduler index on success
+  * @retval "<0"  an error code on failure
+  */
+-int dec_init(Decoder **pdec, Scheduler *sch,
++int ffmpeg_dec_init(Decoder **pdec, Scheduler *sch,
+              AVDictionary **dec_opts, const DecoderOpts *o,
+              AVFrame *param_out);
+ void dec_free(Decoder **pdec);
+diff --git a/fftools/ffmpeg_dec.c b/fftools/ffmpeg_dec.c
+index ed411b6..fa96378 100644
+--- a/fftools/ffmpeg_dec.c
++++ b/fftools/ffmpeg_dec.c
+@@ -1250,7 +1250,7 @@ static int dec_open(DecoderPriv *dp, AVDictionary **dec_opts,
+     return 0;
+ }
+ 
+-int dec_init(Decoder **pdec, Scheduler *sch,
++int ffmpeg_dec_init(Decoder **pdec, Scheduler *sch,
+              AVDictionary **dec_opts, const DecoderOpts *o,
+              AVFrame *param_out)
+ {
+diff --git a/fftools/ffmpeg_demux.c b/fftools/ffmpeg_demux.c
+index 47312c9..bdb67fd 100644
+--- a/fftools/ffmpeg_demux.c
++++ b/fftools/ffmpeg_demux.c
+@@ -943,7 +943,7 @@ static int ist_use(InputStream *ist, int decoding_needed)
+         if (!ds->decoded_params)
+             return AVERROR(ENOMEM);
+ 
+-        ret = dec_init(&ist->decoder, d->sch,
++        ret = ffmpeg_dec_init(&ist->decoder, d->sch,
+                        &ds->decoder_opts, &ds->dec_opts, ds->decoded_params);
+         if (ret < 0)
+             return ret;

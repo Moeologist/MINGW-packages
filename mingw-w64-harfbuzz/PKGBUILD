@@ -30,10 +30,7 @@ makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              $([[ ${CARCH} == i686 ]] || echo "${MINGW_PACKAGE_PREFIX}-chafa")
              "${MINGW_PACKAGE_PREFIX}-ragel")
 depends=("${MINGW_PACKAGE_PREFIX}-freetype"
-         "${MINGW_PACKAGE_PREFIX}-gcc-libs"
-         "${MINGW_PACKAGE_PREFIX}-gettext-runtime"
-         "${MINGW_PACKAGE_PREFIX}-glib2"
-         "${MINGW_PACKAGE_PREFIX}-graphite2")
+         "${MINGW_PACKAGE_PREFIX}-gcc-libs")
 checkdepends=("${MINGW_PACKAGE_PREFIX}-python-fonttools"
               "${MINGW_PACKAGE_PREFIX}-python-setuptools")
 source=("https://github.com/harfbuzz/harfbuzz/releases/download/${pkgver}/harfbuzz-${pkgver}.tar.xz"
@@ -77,11 +74,13 @@ build() {
     --default-library=static \
     -Dauto_features=enabled \
     -Dintrospection=disabled \
-    -Dgobject=enabled \
-    -Dicu=enabled \
+    -Dglib=disabled \
+    -Dgobject=disabled \
+    -Dicu=disabled \
     -Dcpp_std=c++17 \
     -Dgdi=enabled \
-    -Dgraphite=enabled \
+    -Dgraphite=disabled \
+    -Dchafa=disabled \
     -Ddirectwrite=enabled \
     -Dtests=disabled \
     -Ddocs=disabled \
@@ -99,11 +98,12 @@ build() {
     --default-library=shared \
     -Dauto_features=enabled \
     -Dintrospection=enabled \
-    -Dgobject=enabled \
-    -Dicu=enabled \
     -Dcpp_std=c++17 \
+    -Dglib=disabled \
+    -Dgobject=disabled \
+    -Dicu=disabled \
     -Dgdi=enabled \
-    -Dgraphite=enabled \
+    -Dgraphite=disabled \
     -Ddirectwrite=enabled \
     -Dtests=disabled \
     "${_extra_config[@]}" \
